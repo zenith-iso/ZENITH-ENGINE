@@ -13,7 +13,137 @@ body {
 }
 #boot { padding: 20px; white-space: pre-line; }
 #ui { display: none; padding: 20px; }
-h1 { color: #b26cff; letter-spacing: 2px; margin: 0 0 10px; }
+
+/* Top bar with title + advanced tab */
+#topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+h1 { color: #b26cff; letter-spacing: 2px; margin: 0; }
+
+#advancedTab {
+  background: black;
+  color: #b26cff;
+  border: 1px solid #b26cff;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-family: monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  position: relative;
+  top: 0;
+}
+#advancedTab:hover, #advancedTab.open { background: #b26cff; color: black; }
+
+/* Advanced panel */
+#advancedPanel {
+  display: none;
+  border: 1px solid #b26cff;
+  padding: 14px;
+  margin-top: 0;
+  margin-bottom: 8px;
+  background: #080010;
+  font-size: 12px;
+  position: relative;
+}
+#advancedPanel.visible { display: block; }
+
+#advancedPanel h2 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #b26cff;
+  border-bottom: 1px dashed #b26cff;
+  padding-bottom: 6px;
+}
+
+.adv-section { margin-bottom: 12px; }
+.adv-section label {
+  display: block;
+  font-size: 11px;
+  color: #c89eff;
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+
+.adv-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.adv-row input[type="text"],
+.adv-row input[type="number"],
+.adv-row select {
+  background: black;
+  color: #b26cff;
+  border: 1px solid #b26cff;
+  padding: 5px 8px;
+  font-family: monospace;
+  font-size: 12px;
+  outline: none;
+  width: 160px;
+}
+.adv-row input[type="text"]:focus,
+.adv-row input[type="number"]:focus,
+.adv-row select:focus {
+  border-color: #d9a8ff;
+  box-shadow: 0 0 4px #b26cff55;
+}
+.adv-row select option { background: black; }
+
+.adv-row input[type="text"].wide { width: 280px; }
+
+.toggle-chip {
+  background: black;
+  color: #b26cff;
+  border: 1px solid #b26cff;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-family: monospace;
+  font-size: 11px;
+}
+.toggle-chip.on { background: #b26cff; color: black; }
+.toggle-chip:hover { opacity: 0.85; }
+
+#queryPreview {
+  border: 1px dashed #b26cff44;
+  padding: 8px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #d9a8ff;
+  word-break: break-all;
+  min-height: 28px;
+  background: #06000f;
+}
+#queryPreview span.label {
+  color: #7744aa;
+  user-select: none;
+}
+
+.adv-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.adv-actions button {
+  background: black;
+  color: #b26cff;
+  border: 1px solid #b26cff;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-family: monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.adv-actions button:hover { background: #b26cff; color: black; }
+.adv-actions button.primary { border-color: #ff88ff; color: #ff88ff; }
+.adv-actions button.primary:hover { background: #ff88ff; color: black; }
+
+/* === Original styles below === */
 .panel { border: 1px solid #b26cff; padding: 10px; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
 button {
   background: black; color: #b26cff;
@@ -24,7 +154,7 @@ button.active { background: #b26cff; color: black; }
 button:disabled { opacity: 0.3; cursor: not-allowed; }
 button:disabled:hover { background: black; color: #b26cff; }
 #log {
-  height: 180px; overflow-y: auto;
+  height: 150px; overflow-y: auto;
   border: 1px dashed #b26cff; padding: 10px; margin-top: 10px;
   font-size: 12px;
 }
@@ -33,6 +163,7 @@ button:disabled:hover { background: black; color: #b26cff; }
   0%{opacity:1;} 50%{opacity:0.6;} 100%{opacity:1;}
 }
 .err { color: #ff4444; }
+.adv-hint { color: #7744aa; font-size: 10px; margin-left: 6px; }
 </style>
 </head>
 <body>
@@ -40,7 +171,95 @@ button:disabled:hover { background: black; color: #b26cff; }
 <div id="boot"></div>
 
 <div id="ui">
-  <h1 class="glitch">TERMINAL</h1>
+  <div id="topbar">
+    <h1 class="glitch">TERMINAL</h1>
+    <button id="advancedTab" onclick="toggleAdvanced()">[ ADVANCED ▾ ]</button>
+  </div>
+
+  <!-- ADVANCED PANEL -->
+  <div id="advancedPanel">
+    <h2>// QUERY SPECIFICATIONS</h2>
+
+    <div class="adv-section">
+      <label>PREFIX TERM <span class="adv-hint">select a prefix from the query pool</span></label>
+      <div class="adv-row">
+        <select id="adv-prefix" onchange="updatePreview()">
+          <option value="">— NONE —</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="adv-section">
+      <label>SUFFIX / KEYWORD <span class="adv-hint">appended after generated token</span></label>
+      <div class="adv-row">
+        <input type="text" id="adv-suffix" placeholder='e.g. "birthday" vlog birthday' oninput="updatePreview()">
+      </div>
+    </div>
+
+    <div class="adv-section">
+      <label>TOKEN FORMAT <span class="adv-hint">controls the random segment shape</span></label>
+      <div class="adv-row">
+        <select id="adv-format" onchange="updatePreview()">
+          <option value="auto">AUTO (pool random)</option>
+          <option value="4dig">4-DIGIT NUMBER  e.g. 0247</option>
+          <option value="6dig">6-DIGIT NUMBER  e.g. 039214</option>
+          <option value="date8">DATE YYYYMMDD   e.g. 20140823</option>
+          <option value="datesp">DATE YYYY MM DD  (spaced)</option>
+          <option value="none">NONE (prefix/suffix only)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="adv-section">
+      <label>DATE FILTER <span class="adv-hint">YouTube before: / after: operators</span></label>
+      <div class="adv-row">
+        <select id="adv-datemode" onchange="updatePreview()">
+          <option value="layer">USE LAYER DEFAULT</option>
+          <option value="before">BEFORE:</option>
+          <option value="after">AFTER:</option>
+          <option value="between">BETWEEN</option>
+          <option value="none">NONE</option>
+        </select>
+        <input type="text" id="adv-date1" placeholder="YYYY-MM-DD or YYYY" oninput="updatePreview()" style="width:140px;">
+        <span id="adv-date2-wrap" style="display:none;">
+          <input type="text" id="adv-date2" placeholder="end YYYY-MM-DD" oninput="updatePreview()" style="width:140px;">
+        </span>
+      </div>
+    </div>
+
+    <div class="adv-section">
+      <label>SORT MODE <span class="adv-hint">appended as YouTube URL param</span></label>
+      <div class="adv-row">
+        <select id="adv-sort" onchange="updatePreview()">
+          <option value="">DEFAULT (relevance)</option>
+          <option value="&sp=CAI%3D">UPLOAD DATE (newest)</option>
+          <option value="&sp=CAM%3D">VIEW COUNT</option>
+          <option value="&sp=CAE%3D">RATING</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="adv-section">
+      <label>MUTATION ON RESCAN <span class="adv-hint">randomly alter chars each scan</span></label>
+      <div class="adv-row">
+        <button class="toggle-chip on" id="chip-mutate" onclick="toggleChip('chip-mutate')">ON</button>
+        <button class="toggle-chip" id="chip-dupe" onclick="toggleChip('chip-dupe')">ALLOW DUPLICATES</button>
+        <button class="toggle-chip" id="chip-openall" onclick="toggleChip('chip-openall')">OPEN ×3 AT ONCE</button>
+      </div>
+    </div>
+
+    <div>
+      <label>LIVE QUERY PREVIEW</label>
+      <div id="queryPreview"><span class="label">—</span></div>
+    </div>
+
+    <div class="adv-actions">
+      <button class="primary" onclick="advScan()">▶ FIRE ADVANCED SCAN</button>
+      <button onclick="resetAdv()">RESET</button>
+      <button onclick="copyPreview()">COPY QUERY</button>
+    </div>
+  </div>
+  <!-- / ADVANCED PANEL -->
 
   <div class="panel">
     <button id="btn-new"     onclick="setLayer('new')">LAYER I — RECENT FALLEN</button>
@@ -60,7 +279,6 @@ button:disabled:hover { background: black; color: #b26cff; }
 </div>
 
 <script>
-
 const boot = [
   "Initializing ZENITH ENGINE...",
   "Loading temporal archive layers...",
@@ -83,6 +301,8 @@ function bootSeq(){
     setTimeout(bootSeq, 500);
   } else {
     document.getElementById("ui").style.display = "block";
+    populatePrefixSelect();
+    updatePreview();
   }
 }
 bootSeq();
@@ -121,6 +341,7 @@ function setLayer(l){
   log("Layer switched → " + label);
   document.getElementById("output").innerText = "ACTIVE NODE: " + label;
   document.getElementById("scanBtn").disabled = false;
+  updatePreview();
 }
 
 function r(n){ return Math.floor(Math.random()*n); }
@@ -139,7 +360,6 @@ function gen(){
   let q = pool[r(pool.length)];
   if(lastSeed && Math.random() < 0.4){ q = mutate(q); }
   lastSeed = q;
-
   q = q.replace(/X{6}/g, pad(r(999999),6));
   q = q.replace(/XXXX/g, pad(r(9999),4));
   q = q.replace(/YYYYMMDD/g, ()=>{
@@ -149,7 +369,6 @@ function gen(){
   q = q.replace(/YYYY/g, 2006 + r(21));
   q = q.replace(/MM/g, pad(1+r(12),2));
   q = q.replace(/DD/g, pad(1+r(28),2));
-
   return q;
 }
 
@@ -159,23 +378,18 @@ function scan(){
     document.getElementById("output").innerText = "ERROR: NO LAYER SELECTED";
     return;
   }
-
   const isPseudo = layer === "pseudo";
   const q = gen();
   const fullQ = isPseudo ? q : q + " before:" + layerBefore[layer];
-
   scans++;
   log("NODE → " + fullQ + (isPseudo ? " [no time sort]" : ""));
-
   window.open(
     "https://www.youtube.com/results?search_query=" + encodeURIComponent(fullQ),
     "_blank"
   );
-
   document.getElementById("output").innerText = isPseudo
     ? "PSUEDO NODE STREAM ACTIVE (" + scans + ") // UNSORTED"
     : "NODE STREAM ACTIVE (" + scans + ") // BEFORE:" + layerBefore[layer];
-
   if(scans > 8){
     document.getElementById("blackBtn").style.display = "inline-block";
   }
@@ -201,6 +415,163 @@ function log(msg){
   const t = new Date().toTimeString().split(" ")[0];
   box.innerHTML += `[${t}] ${msg}<br>`;
   box.scrollTop = box.scrollHeight;
+}
+
+// =====================
+// ADVANCED TAB LOGIC
+// =====================
+
+let advOpen = false;
+
+function toggleAdvanced(){
+  advOpen = !advOpen;
+  document.getElementById("advancedPanel").classList.toggle("visible", advOpen);
+  document.getElementById("advancedTab").classList.toggle("open", advOpen);
+  document.getElementById("advancedTab").innerText = advOpen ? "[ ADVANCED ▴ ]" : "[ ADVANCED ▾ ]";
+  if(advOpen) updatePreview();
+}
+
+function toggleChip(id){
+  document.getElementById(id).classList.toggle("on");
+  updatePreview();
+}
+
+function chipOn(id){ return document.getElementById(id).classList.contains("on"); }
+
+// Show/hide second date input
+document.getElementById("adv-datemode").addEventListener("change", function(){
+  const show = this.value === "between";
+  document.getElementById("adv-date2-wrap").style.display = show ? "inline" : "none";
+  updatePreview();
+});
+
+function populatePrefixSelect(){
+  const sel = document.getElementById("adv-prefix");
+  // Extract the static prefix part of each pool entry (everything before first placeholder char)
+  const seen = new Set();
+  pool.forEach(entry => {
+    // Strip placeholder sequences: XXXX, YYYYMMDD, YYYY, MM, DD, X{6}
+    const prefix = entry.replace(/\s*(X{6}|XXXX|YYYYMMDD|YYYY\s*MM\s*DD|YYYY|MM|DD).*/i, "").trim();
+    if(prefix && !seen.has(prefix)){
+      seen.add(prefix);
+      const opt = document.createElement("option");
+      opt.value = prefix;
+      opt.text = prefix;
+      sel.appendChild(opt);
+    }
+  });
+}
+
+function buildAdvToken(){
+  const fmt = document.getElementById("adv-format").value;
+  if(fmt === "none") return "";
+  if(fmt === "4dig") return pad(r(9999),4);
+  if(fmt === "6dig") return pad(r(999999),6);
+  if(fmt === "date8"){
+    const y = 2006 + r(21);
+    return "" + y + pad(1+r(12),2) + pad(1+r(28),2);
+  }
+  if(fmt === "datesp"){
+    const y = 2006 + r(21);
+    return y + " " + pad(1+r(12),2) + " " + pad(1+r(28),2);
+  }
+  // auto
+  return gen();
+}
+
+function buildAdvQuery(forPreview){
+  const prefix = document.getElementById("adv-prefix").value.trim();
+  const suffix = document.getElementById("adv-suffix").value.trim();
+  const fmt    = document.getElementById("adv-format").value;
+  const datemode = document.getElementById("adv-datemode").value;
+  const date1  = document.getElementById("adv-date1").value.trim();
+  const date2  = document.getElementById("adv-date2").value.trim();
+
+  let token = forPreview ? "[TOKEN]" : buildAdvToken();
+  if(fmt === "auto" && !forPreview){ token = gen(); }
+
+  let parts = [];
+  if(prefix) parts.push(prefix);
+  if(fmt !== "none") parts.push(token);
+  if(suffix) parts.push(suffix);
+
+  let q = parts.join(" ");
+
+  // Date filter
+  if(datemode === "before" && date1){
+    q += " before:" + date1;
+  } else if(datemode === "after" && date1){
+    q += " after:" + date1;
+  } else if(datemode === "between" && date1 && date2){
+    q += " after:" + date1 + " before:" + date2;
+  } else if(datemode === "layer" && layer && layer !== "pseudo"){
+    q += " before:" + layerBefore[layer];
+  }
+
+  return q;
+}
+
+function updatePreview(){
+  const q = buildAdvQuery(true);
+  const sort = document.getElementById("adv-sort").value;
+  let sortLabel = "";
+  if(sort) sortLabel = " [+" + document.getElementById("adv-sort").selectedOptions[0].text.split("(")[0].trim() + "]";
+  document.getElementById("queryPreview").innerHTML =
+    '<span class="label">QUERY: </span>' + (q || "<em>—</em>") + sortLabel;
+}
+
+function advScan(){
+  const q = buildAdvQuery(false);
+  if(!q || q.trim() === ""){
+    log('<span class="err">ADV ERR // EMPTY QUERY — CONFIGURE SPECIFICATIONS</span>');
+    return;
+  }
+
+  const sort = document.getElementById("adv-sort").value;
+  const openAll = chipOn("chip-openall");
+  const count = openAll ? 3 : 1;
+
+  scans += count;
+  log("ADV NODE → " + q + (openAll ? " [×" + count + "]" : ""));
+
+  for(let n = 0; n < count; n++){
+    const qFinal = (n > 0 && chipOn("chip-mutate")) ? buildAdvQuery(false) : q;
+    window.open(
+      "https://www.youtube.com/results?search_query=" + encodeURIComponent(qFinal) + sort,
+      "_blank"
+    );
+  }
+
+  document.getElementById("output").innerText =
+    "ADV SCAN FIRED (" + scans + ") // " + q;
+
+  if(scans > 8){
+    document.getElementById("blackBtn").style.display = "inline-block";
+  }
+}
+
+function resetAdv(){
+  document.getElementById("adv-prefix").selectedIndex = 0;
+  document.getElementById("adv-suffix").value = "";
+  document.getElementById("adv-format").value = "auto";
+  document.getElementById("adv-datemode").value = "layer";
+  document.getElementById("adv-date1").value = "";
+  document.getElementById("adv-date2").value = "";
+  document.getElementById("adv-sort").value = "";
+  document.getElementById("adv-date2-wrap").style.display = "none";
+  ["chip-mutate"].forEach(id => document.getElementById(id).classList.add("on"));
+  ["chip-dupe","chip-openall"].forEach(id => document.getElementById(id).classList.remove("on"));
+  updatePreview();
+  log("ADV // CONFIG RESET");
+}
+
+function copyPreview(){
+  const q = buildAdvQuery(false);
+  navigator.clipboard.writeText(q).then(()=>{
+    log("ADV // QUERY COPIED → " + q);
+  }).catch(()=>{
+    log("ADV // COPY FAILED (clipboard unavailable)");
+  });
 }
 </script>
 </body>
