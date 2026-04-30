@@ -20,6 +20,9 @@ button {
   border: 1px solid #b26cff; padding: 10px; cursor: pointer;
 }
 button:hover { background: #b26cff; color: black; }
+button.active {
+  background: #b26cff; color: black;
+}
 button:disabled {
   opacity: 0.3; cursor: not-allowed;
 }
@@ -43,10 +46,10 @@ button:disabled:hover { background: black; color: #b26cff; }
   <h1 class="glitch">TERMINAL</h1>
 
   <div class="panel">
-    <button onclick="setLayer('new')">LAYER I — RECENT FALLEN</button>
-    <button onclick="setLayer('mid')">LAYER II — FORGOTTEN ERA</button>
-    <button onclick="setLayer('ancient')">LAYER III — PRE-ARCHIVE</button>
-    <button onclick="pseudoRandom()">PSUEDO RANDOM NODE</button>
+    <button id="btn-new"     onclick="setLayer('new')">LAYER I — RECENT FALLEN</button>
+    <button id="btn-mid"     onclick="setLayer('mid')">LAYER II — FORGOTTEN ERA</button>
+    <button id="btn-ancient" onclick="setLayer('ancient')">LAYER III — PRE-ARCHIVE</button>
+    <button id="btn-pseudo"  onclick="setLayer('pseudo')">PSUEDO RANDOM NODE</button>
     <button onclick="blackout()" id="blackBtn" style="display:none;">BLACKOUT LAYER</button>
   </div>
 
@@ -97,10 +100,25 @@ const layerBefore = {
   ancient:"2010"
 };
 
+const layerBtns = ["btn-new","btn-mid","btn-ancient","btn-pseudo"];
+
 function setLayer(l){
   layer = l;
-  log("Layer switched → " + l.toUpperCase());
-  document.getElementById("output").innerText = "ACTIVE LAYER: " + l;
+
+  layerBtns.forEach(id => {
+    document.getElementById(id).classList.remove("active");
+  });
+  document.getElementById("btn-" + l).classList.add("active");
+
+  const label = {
+    new: "LAYER I — RECENT FALLEN",
+    mid: "LAYER II — FORGOTTEN ERA",
+    ancient: "LAYER III — PRE-ARCHIVE",
+    pseudo: "PSUEDO RANDOM NODE"
+  }[l];
+
+  log("Layer switched → " + label);
+  document.getElementById("output").innerText = "ACTIVE NODE: " + label;
   document.getElementById("scanBtn").disabled = false;
 }
 
@@ -156,33 +174,29 @@ function scan(){
     return;
   }
 
-  let q = gen("normal");
-  const before = layerBefore[layer];
-  const fullQ = q + " before:" + before;
+  const isPseudo = layer === "pseudo";
+  let q = gen(isPseudo ? "pseudo" : "normal");
+
+  let fullQ = q;
+  if(!isPseudo){
+    fullQ = q + " before:" + layerBefore[layer];
+  }
 
   scans++;
-  log("NODE → " + fullQ);
+  log("NODE → " + fullQ + (isPseudo ? " [no time sort]" : ""));
 
   window.open(
     "https://www.youtube.com/results?search_query=" + encodeURIComponent(fullQ),
     "_blank"
   );
 
-  document.getElementById("output").innerText =
-    "NODE STREAM ACTIVE (" + scans + ") // BEFORE:" + before;
+  document.getElementById("output").innerText = isPseudo
+    ? "PSUEDO NODE STREAM ACTIVE (" + scans + ") // UNSORTED"
+    : "NODE STREAM ACTIVE (" + scans + ") // BEFORE:" + layerBefore[layer];
 
   if(scans > 8){
     document.getElementById("blackBtn").style.display = "inline-block";
   }
-}
-
-function pseudoRandom(){
-  let q = gen("pseudo");
-  log("PSUEDO NODE → " + q + " [no time sort]");
-  window.open(
-    "https://www.youtube.com/results?search_query=" + encodeURIComponent(q),
-    "_blank"
-  );
 }
 
 function corrupt(){
