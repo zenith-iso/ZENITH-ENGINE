@@ -294,6 +294,7 @@ const boot = [
 
 let i = 0;
 const bootBox = document.getElementById("boot");
+
 function bootSeq(){
   if(i < boot.length){
     bootBox.innerText += boot[i] + "\n";
@@ -311,9 +312,9 @@ let layer = null;
 let scans = 0;
 
 const layerBefore = {
-  new:    "2023",
-  mid:    "2016",
-  ancient:"2010"
+  new: "2023",
+  mid: "2016",
+  ancient: "2010"
 };
 
 const layerBtns = ["btn-new","btn-mid","btn-ancient","btn-pseudo"];
@@ -327,12 +328,14 @@ function setLayer(l){
   layer = l;
   layerBtns.forEach(id => document.getElementById(id).classList.remove("active"));
   document.getElementById("btn-" + l).classList.add("active");
+
   const label = {
     new: "LAYER I — RECENT FALLEN",
     mid: "LAYER II — FORGOTTEN ERA",
     ancient: "LAYER III — PRE-ARCHIVE",
-    pseudo: "PSUEDO RANDOM NODE"
+    pseudo: "PSEUDO RANDOM NODE"
   }[l];
+
   log("Layer switched → " + label);
   document.getElementById("output").innerText = "ACTIVE NODE: " + label;
   document.getElementById("scanBtn").disabled = false;
@@ -342,34 +345,26 @@ function setLayer(l){
 function r(n){ return Math.floor(Math.random()*n); }
 function pad(n,l){ return n.toString().padStart(l,"0"); }
 
-let lastSeed = null;
-
-function mutate(seed){
-  if(!seed) return seed;
-  return seed.split("").map(c=>{
-    return Math.random() < 0.15 ? String.fromCharCode(97+r(26)) : c;
-  }).join("");
-}
-
 function gen(){
   let q = pool[r(pool.length)];
-  if(lastSeed && Math.random() < 0.4){ q = mutate(q); }
-  lastSeed = q;
+
+  // Replace placeholders safely
   q = q.replace(/X{6}/g, pad(r(999999),6));
   q = q.replace(/XXXX/g, pad(r(9999),4));
+
   q = q.replace(/YYYYMMDD/g, ()=>{
     const y = 2006 + r(21);
     return y + pad(1+r(12),2) + pad(1+r(28),2);
   });
+
   q = q.replace(/YYYY/g, 2006 + r(21));
   q = q.replace(/MM/g, pad(1+r(12),2));
   q = q.replace(/DD/g, pad(1+r(28),2));
+
   return q;
 }
 
 function exactQuote(q){
-  // Wrap the core filename token in quotes; date operators must stay outside
-  // Strategy: split off any trailing before:/after: operators, quote the rest
   const match = q.match(/^(.*?)(\s+(before:|after:)\S+(\s+(before:|after:)\S+)?)?$/i);
   if(match){
     const core = match[1].trim();
@@ -385,19 +380,25 @@ function scan(){
     document.getElementById("output").innerText = "ERROR: NO LAYER SELECTED";
     return;
   }
+
   const isPseudo = layer === "pseudo";
   const q = gen();
   const dateOp = isPseudo ? "" : " before:" + layerBefore[layer];
   const fullQ = exactQuote(q) + dateOp;
+
   scans++;
+
   log("NODE → " + fullQ + (isPseudo ? " [no time sort]" : ""));
+
   window.open(
     "https://www.youtube.com/results?search_query=" + encodeURIComponent(fullQ),
     "_blank"
   );
+
   document.getElementById("output").innerText = isPseudo
-    ? "PSUEDO NODE STREAM ACTIVE (" + scans + ") // UNSORTED"
+    ? "PSEUDO NODE STREAM ACTIVE (" + scans + ") // UNSORTED"
     : "NODE STREAM ACTIVE (" + scans + ") // BEFORE:" + layerBefore[layer];
+
   if(scans > 8){
     document.getElementById("blackBtn").style.display = "inline-block";
   }
@@ -426,7 +427,7 @@ function log(msg){
 }
 
 // =====================
-// ADVANCED TAB LOGIC
+// ADVANCED TAB
 // =====================
 
 let advOpen = false;
@@ -446,7 +447,6 @@ function toggleChip(id){
 
 function chipOn(id){ return document.getElementById(id).classList.contains("on"); }
 
-// Show/hide second date input
 document.getElementById("adv-datemode").addEventListener("change", function(){
   const show = this.value === "between";
   document.getElementById("adv-date2-wrap").style.display = show ? "inline" : "none";
@@ -456,6 +456,7 @@ document.getElementById("adv-datemode").addEventListener("change", function(){
 function populatePrefixSelect(){
   const sel = document.getElementById("adv-prefix");
   const seen = new Set();
+
   pool.forEach(entry => {
     const prefix = entry.replace(/\s*(X{6}|XXXX|YYYYMMDD|YYYY\s*MM\s*DD|YYYY|MM|DD).*/i, "").trim();
     if(prefix && !seen.has(prefix)){
@@ -470,41 +471,41 @@ function populatePrefixSelect(){
 
 function buildAdvToken(){
   const fmt = document.getElementById("adv-format").value;
+
   if(fmt === "none") return "";
   if(fmt === "4dig") return pad(r(9999),4);
   if(fmt === "6dig") return pad(r(999999),6);
+
   if(fmt === "date8"){
     const y = 2006 + r(21);
     return "" + y + pad(1+r(12),2) + pad(1+r(28),2);
   }
+
   if(fmt === "datesp"){
     const y = 2006 + r(21);
     return y + " " + pad(1+r(12),2) + " " + pad(1+r(28),2);
   }
-  // auto
+
   return gen();
 }
 
 function buildAdvQuery(forPreview){
   const prefix = document.getElementById("adv-prefix").value.trim();
   const suffix = document.getElementById("adv-suffix").value.trim();
-  const fmt    = document.getElementById("adv-format").value;
+  const fmt = document.getElementById("adv-format").value;
   const datemode = document.getElementById("adv-datemode").value;
-  const date1  = document.getElementById("adv-date1").value.trim();
-  const date2  = document.getElementById("adv-date2").value.trim();
+  const date1 = document.getElementById("adv-date1").value.trim();
+  const date2 = document.getElementById("adv-date2").value.trim();
 
   let token = forPreview ? "[TOKEN]" : buildAdvToken();
-  if(fmt === "auto" && !forPreview){ token = gen(); }
 
   let parts = [];
   if(prefix) parts.push(prefix);
   if(fmt !== "none") parts.push(token);
   if(suffix) parts.push(suffix);
 
-  // The core (quoted) part — everything before date operators
   const core = parts.join(" ");
 
-  // Date operators — must live outside the quotes
   let dateOp = "";
   if(datemode === "before" && date1){
     dateOp = " before:" + date1;
@@ -516,22 +517,25 @@ function buildAdvQuery(forPreview){
     dateOp = " before:" + layerBefore[layer];
   }
 
-  // Wrap core in quotes, append date operators outside
-  const q = (core ? '"' + core + '"' : "") + dateOp;
-  return q;
+  return (core ? '"' + core + '"' : "") + dateOp;
 }
 
 function updatePreview(){
   const q = buildAdvQuery(true);
   const sort = document.getElementById("adv-sort").value;
+
   let sortLabel = "";
-  if(sort) sortLabel = " [+" + document.getElementById("adv-sort").selectedOptions[0].text.split("(")[0].trim() + "]";
+  if(sort){
+    sortLabel = " [+" + document.getElementById("adv-sort").selectedOptions[0].text.split("(")[0].trim() + "]";
+  }
+
   document.getElementById("queryPreview").innerHTML =
     '<span class="label">QUERY: </span>' + (q || "<em>—</em>") + sortLabel;
 }
 
 function advScan(){
   const q = buildAdvQuery(false);
+
   if(!q || q.trim() === "" || q.trim() === '""'){
     log('<span class="err">ADV ERR // EMPTY QUERY — CONFIGURE SPECIFICATIONS</span>');
     return;
@@ -545,9 +549,8 @@ function advScan(){
   log("ADV NODE → " + q + (openAll ? " [×" + count + "]" : ""));
 
   for(let n = 0; n < count; n++){
-    const qFinal = (n > 0 && chipOn("chip-mutate")) ? buildAdvQuery(false) : q;
     window.open(
-      "https://www.youtube.com/results?search_query=" + encodeURIComponent(qFinal) + sort,
+      "https://www.youtube.com/results?search_query=" + encodeURIComponent(q) + sort,
       "_blank"
     );
   }
@@ -569,14 +572,17 @@ function resetAdv(){
   document.getElementById("adv-date2").value = "";
   document.getElementById("adv-sort").value = "";
   document.getElementById("adv-date2-wrap").style.display = "none";
-  ["chip-mutate"].forEach(id => document.getElementById(id).classList.add("on"));
+
+  ["chip-mutate"].forEach(id => document.getElementById(id).classList.remove("on"));
   ["chip-dupe","chip-openall"].forEach(id => document.getElementById(id).classList.remove("on"));
+
   updatePreview();
   log("ADV // CONFIG RESET");
 }
 
 function copyPreview(){
   const q = buildAdvQuery(false);
+
   navigator.clipboard.writeText(q).then(()=>{
     log("ADV // QUERY COPIED → " + q);
   }).catch(()=>{
