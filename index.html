@@ -1,604 +1,533 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
+
 <style>
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  background: black;
-  color: #b26cff;
-  font-family: monospace;
-  overflow: hidden;
-}
-#boot { padding: 20px; white-space: pre-line; }
-#ui { display: none; padding: 20px; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#000;color:#b26cff;font-family:monospace;overflow-x:hidden;}
+#boot{padding:24px 20px;white-space:pre-line;font-size:13px;line-height:1.8;}
+#ui{display:none;}
 
-#topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 10px;
-}
-h1 { color: #b26cff; letter-spacing: 2px; margin: 0; }
+#scanline{pointer-events:none;position:absolute;top:0;left:0;width:100%;height:100%;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);z-index:0;}
 
-#advancedTab {
-  background: black;
-  color: #b26cff;
-  border: 1px solid #b26cff;
-  padding: 6px 14px;
-  cursor: pointer;
-  font-family: monospace;
-  font-size: 11px;
-  letter-spacing: 1px;
-  position: relative;
-  top: 0;
-}
-#advancedTab:hover, #advancedTab.open { background: #b26cff; color: black; }
+#header{display:flex;justify-content:space-between;align-items:center;padding:14px 20px 0;border-bottom:1px solid #2a0050;padding-bottom:12px;}
+#header-left{display:flex;align-items:baseline;gap:14px;}
+h1{color:#b26cff;letter-spacing:4px;font-size:20px;text-shadow:0 0 8px #b26cff55;}
+#subtitle{font-size:10px;color:#5a2a88;letter-spacing:2px;margin-top:2px;}
+#header-right{display:flex;align-items:center;gap:10px;}
 
-#advancedPanel {
-  display: none;
-  border: 1px solid #b26cff;
-  padding: 14px;
-  margin-top: 0;
-  margin-bottom: 8px;
-  background: #080010;
-  font-size: 12px;
-  position: relative;
-}
-#advancedPanel.visible { display: block; }
+#statusBar{display:flex;gap:0;border:1px solid #2a0050;overflow:hidden;}
+.sb-item{padding:5px 12px;font-size:10px;letter-spacing:1px;color:#5a2a88;border-right:1px solid #2a0050;}
+.sb-item:last-child{border-right:none;}
+.sb-item span{color:#b26cff;}
 
-#advancedPanel h2 {
-  margin: 0 0 10px;
-  font-size: 12px;
-  letter-spacing: 2px;
-  color: #b26cff;
-  border-bottom: 1px dashed #b26cff;
-  padding-bottom: 6px;
-}
+#advancedTab{background:black;color:#b26cff;border:1px solid #b26cff;padding:6px 14px;cursor:pointer;font-family:monospace;font-size:11px;letter-spacing:1px;}
+#advancedTab:hover,#advancedTab.open{background:#b26cff;color:black;}
 
-.adv-section { margin-bottom: 12px; }
-.adv-section label {
-  display: block;
-  font-size: 11px;
-  color: #c89eff;
-  margin-bottom: 4px;
-  letter-spacing: 1px;
-}
+#main{display:grid;grid-template-columns:1fr 220px;gap:0;padding:0 20px 20px;}
+#left{padding-top:14px;}
+#right{padding-top:14px;padding-left:16px;border-left:1px solid #1a0030;}
 
-.adv-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-}
+#advancedPanel{display:none;border:1px solid #b26cff;padding:14px;margin:14px 20px 0;background:#080010;font-size:12px;}
+#advancedPanel.visible{display:block;}
+#advancedPanel h2{margin:0 0 10px;font-size:11px;letter-spacing:2px;color:#b26cff;border-bottom:1px dashed #b26cff;padding-bottom:6px;}
 
-.adv-row input[type="text"],
-.adv-row input[type="number"],
-.adv-row select {
-  background: black;
-  color: #b26cff;
-  border: 1px solid #b26cff;
-  padding: 5px 8px;
-  font-family: monospace;
-  font-size: 12px;
-  outline: none;
-  width: 160px;
-}
-.adv-row input[type="text"]:focus,
-.adv-row input[type="number"]:focus,
-.adv-row select:focus {
-  border-color: #d9a8ff;
-  box-shadow: 0 0 4px #b26cff55;
-}
-.adv-row select option { background: black; }
+.adv-section{margin-bottom:12px;}
+.adv-section label{display:block;font-size:10px;color:#c89eff;margin-bottom:4px;letter-spacing:1px;}
+.adv-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.adv-row input[type="text"],.adv-row select{background:black;color:#b26cff;border:1px solid #b26cff;padding:5px 8px;font-family:monospace;font-size:12px;outline:none;width:160px;}
+.adv-row input[type="text"]:focus,.adv-row select:focus{border-color:#d9a8ff;}
+.adv-row select option{background:black;}
+.toggle-chip{background:black;color:#b26cff;border:1px solid #b26cff;padding:4px 10px;cursor:pointer;font-family:monospace;font-size:11px;}
+.toggle-chip.on{background:#b26cff;color:black;}
+.toggle-chip:hover{opacity:0.85;}
+#queryPreview{border:1px dashed #b26cff44;padding:8px;margin-top:8px;font-size:11px;color:#d9a8ff;word-break:break-all;min-height:28px;background:#06000f;}
+#queryPreview span.label{color:#7744aa;user-select:none;}
+.adv-actions{display:flex;gap:8px;margin-top:10px;}
+.adv-actions button{background:black;color:#b26cff;border:1px solid #b26cff;padding:7px 14px;cursor:pointer;font-family:monospace;font-size:11px;letter-spacing:1px;}
+.adv-actions button:hover{background:#b26cff;color:black;}
+.adv-actions button.primary{border-color:#ff88ff;color:#ff88ff;}
+.adv-actions button.primary:hover{background:#ff88ff;color:black;}
+.adv-hint{color:#7744aa;font-size:10px;margin-left:6px;}
 
-.adv-row input[type="text"].wide { width: 280px; }
+.panel{border:1px solid #2a0050;padding:10px;margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;background:#03000a;}
+.panel-label{font-size:9px;letter-spacing:2px;color:#3a1060;margin-bottom:4px;padding-left:2px;}
+button{background:black;color:#b26cff;border:1px solid #b26cff;padding:8px 12px;cursor:pointer;font-family:monospace;font-size:11px;letter-spacing:1px;}
+button:hover{background:#b26cff;color:black;}
+button.active{background:#b26cff;color:black;}
+button:disabled{opacity:0.3;cursor:not-allowed;}
+button:disabled:hover{background:black;color:#b26cff;}
 
-.toggle-chip {
-  background: black;
-  color: #b26cff;
-  border: 1px solid #b26cff;
-  padding: 4px 10px;
-  cursor: pointer;
-  font-family: monospace;
-  font-size: 11px;
-}
-.toggle-chip.on { background: #b26cff; color: black; }
-.toggle-chip:hover { opacity: 0.85; }
+#output{border:1px solid #2a0050;padding:10px 14px;margin-top:10px;background:#03000a;font-size:12px;letter-spacing:1px;min-height:38px;}
+#output .out-label{font-size:9px;color:#3a1060;letter-spacing:2px;display:block;margin-bottom:4px;}
 
-#queryPreview {
-  border: 1px dashed #b26cff44;
-  padding: 8px;
-  margin-top: 8px;
-  font-size: 11px;
-  color: #d9a8ff;
-  word-break: break-all;
-  min-height: 28px;
-  background: #06000f;
-}
-#queryPreview span.label {
-  color: #7744aa;
-  user-select: none;
-}
+#log{height:120px;overflow-y:auto;border:1px dashed #2a0050;padding:10px;margin-top:10px;font-size:11px;line-height:1.7;background:#02000a;}
+#log::-webkit-scrollbar{width:4px;}
+#log::-webkit-scrollbar-thumb{background:#3a1060;}
 
-.adv-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-.adv-actions button {
-  background: black;
-  color: #b26cff;
-  border: 1px solid #b26cff;
-  padding: 7px 14px;
-  cursor: pointer;
-  font-family: monospace;
-  font-size: 11px;
-  letter-spacing: 1px;
-}
-.adv-actions button:hover { background: #b26cff; color: black; }
-.adv-actions button.primary { border-color: #ff88ff; color: #ff88ff; }
-.adv-actions button.primary:hover { background: #ff88ff; color: black; }
+.glitch{animation:flicker 2s infinite;}
+@keyframes flicker{0%,95%,100%{opacity:1;}96%{opacity:0.5;}97%{opacity:1;}98%{opacity:0.3;}99%{opacity:1;}}
+.err{color:#ff4444;}
+.ok{color:#44ff88;}
 
-.panel { border: 1px solid #b26cff; padding: 10px; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
-button {
-  background: black; color: #b26cff;
-  border: 1px solid #b26cff; padding: 10px; cursor: pointer;
-}
-button:hover { background: #b26cff; color: black; }
-button.active { background: #b26cff; color: black; }
-button:disabled { opacity: 0.3; cursor: not-allowed; }
-button:disabled:hover { background: black; color: #b26cff; }
-#log {
-  height: 150px; overflow-y: auto;
-  border: 1px dashed #b26cff; padding: 10px; margin-top: 10px;
-  font-size: 12px;
-}
-.glitch { animation: flicker 0.15s infinite; }
-@keyframes flicker {
-  0%{opacity:1;} 50%{opacity:0.6;} 100%{opacity:1;}
-}
-.err { color: #ff4444; }
-.adv-hint { color: #7744aa; font-size: 10px; margin-left: 6px; }
+#nodeViz{border:1px solid #1a0030;background:#03000a;padding:10px;margin-bottom:10px;}
+#nodeViz .viz-label{font-size:9px;letter-spacing:2px;color:#3a1060;margin-bottom:8px;}
+#nodeGrid{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;}
+.nd{width:100%;aspect-ratio:1;background:#0d0020;border:1px solid #1a0030;cursor:pointer;transition:background 0.1s;}
+.nd.lit{background:#b26cff;border-color:#d9a8ff;}
+.nd.fired{background:#ff88ff;border-color:#ff88ff;}
+
+#statsBox{border:1px solid #1a0030;background:#03000a;padding:10px;margin-bottom:10px;}
+.stat-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid #0d0020;font-size:11px;}
+.stat-row:last-child{border-bottom:none;}
+.stat-key{color:#5a2a88;letter-spacing:1px;font-size:10px;}
+.stat-val{color:#b26cff;font-size:13px;}
+
+#waveBox{border:1px solid #1a0030;background:#03000a;padding:10px;}
+.wave-label{font-size:9px;letter-spacing:2px;color:#3a1060;margin-bottom:6px;}
+#waveCanvas{width:100%;height:40px;display:block;}
+
+.tier-bar{height:6px;background:#0d0020;margin-top:6px;border:1px solid #1a0030;overflow:hidden;}
+.tier-fill{height:100%;background:#b26cff;transition:width 0.4s;}
 </style>
-</head>
-<body>
 
 <div id="boot"></div>
 
 <div id="ui">
-  <div id="topbar">
-    <h1 class="glitch">ZenYard //</h1>
+<div id="scanline"></div>
+
+<div id="header">
+  <div id="header-left">
+    <div>
+      <h1 class="glitch">ZenYard //</h1>
+      <div id="subtitle">TEMPORAL ARCHIVE SEARCH SYSTEM v2.1</div>
+    </div>
+  </div>
+  <div id="header-right">
+    <div id="statusBar">
+      <div class="sb-item">NODE <span id="sb-layer">—</span></div>
+      <div class="sb-item">SCANS <span id="sb-scans">0</span></div>
+      <div class="sb-item">STATUS <span id="sb-status" class="ok">ONLINE</span></div>
+    </div>
     <button id="advancedTab" onclick="toggleAdvanced()">[ ADVANCED ▾ ]</button>
   </div>
+</div>
 
-  <!-- ADVANCED PANEL -->
-  <div id="advancedPanel">
-    <h2>// QUERY SPECIFICATIONS</h2>
-
-    <div class="adv-section">
-      <label>PREFIX TERM <span class="adv-hint">select a prefix from the query pool</span></label>
-      <div class="adv-row">
-        <select id="adv-prefix" onchange="updatePreview()">
-          <option value="">— NONE —</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="adv-section">
-      <label>SUFFIX / KEYWORD <span class="adv-hint">appended after generated token</span></label>
-      <div class="adv-row">
-        <input type="text" id="adv-suffix" placeholder='e.g. "birthday" vlog birthday' oninput="updatePreview()">
-      </div>
-    </div>
-
-    <div class="adv-section">
-      <label>TOKEN FORMAT <span class="adv-hint">controls the random segment shape</span></label>
-      <div class="adv-row">
-        <select id="adv-format" onchange="updatePreview()">
-          <option value="auto">AUTO (pool random)</option>
-          <option value="4dig">4-DIGIT NUMBER  e.g. 0247</option>
-          <option value="6dig">6-DIGIT NUMBER  e.g. 039214</option>
-          <option value="date8">DATE YYYYMMDD   e.g. 20140823</option>
-          <option value="datesp">DATE YYYY MM DD  (spaced)</option>
-          <option value="none">NONE (prefix/suffix only)</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="adv-section">
-      <label>DATE FILTER <span class="adv-hint">YouTube before: / after: operators</span></label>
-      <div class="adv-row">
-        <select id="adv-datemode" onchange="updatePreview()">
-          <option value="layer">USE LAYER DEFAULT</option>
-          <option value="before">BEFORE:</option>
-          <option value="after">AFTER:</option>
-          <option value="between">BETWEEN</option>
-          <option value="none">NONE</option>
-        </select>
-        <input type="text" id="adv-date1" placeholder="YYYY-MM-DD or YYYY" oninput="updatePreview()" style="width:140px;">
-        <span id="adv-date2-wrap" style="display:none;">
-          <input type="text" id="adv-date2" placeholder="end YYYY-MM-DD" oninput="updatePreview()" style="width:140px;">
-        </span>
-      </div>
-    </div>
-
-    <div class="adv-section">
-      <label>SORT MODE <span class="adv-hint">appended as YouTube URL param</span></label>
-      <div class="adv-row">
-        <select id="adv-sort" onchange="updatePreview()">
-          <option value="">DEFAULT (relevance)</option>
-          <option value="&sp=CAI%3D">UPLOAD DATE (newest)</option>
-          <option value="&sp=CAM%3D">VIEW COUNT</option>
-          <option value="&sp=CAE%3D">RATING</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="adv-section">
-      <label>MUTATION ON RESCAN <span class="adv-hint">randomly alter chars each scan</span></label>
-      <div class="adv-row">
-        <button class="toggle-chip on" id="chip-mutate" onclick="toggleChip('chip-mutate')">ON</button>
-        <button class="toggle-chip" id="chip-dupe" onclick="toggleChip('chip-dupe')">ALLOW DUPLICATES</button>
-        <button class="toggle-chip" id="chip-openall" onclick="toggleChip('chip-openall')">OPEN ×3 AT ONCE</button>
-      </div>
-    </div>
-
+<div id="advancedPanel">
+  <h2>// QUERY SPECIFICATIONS</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
     <div>
-      <label>LIVE QUERY PREVIEW</label>
-      <div id="queryPreview"><span class="label">—</span></div>
+      <div class="adv-section">
+        <label>PREFIX TERM <span class="adv-hint">select from query pool</span></label>
+        <div class="adv-row"><select id="adv-prefix" onchange="updatePreview()"><option value="">— NONE —</option></select></div>
+      </div>
+      <div class="adv-section">
+        <label>SUFFIX / KEYWORD <span class="adv-hint">appended after token</span></label>
+        <div class="adv-row"><input type="text" id="adv-suffix" placeholder='e.g. birthday vlog' oninput="updatePreview()"></div>
+      </div>
+      <div class="adv-section">
+        <label>TOKEN FORMAT</label>
+        <div class="adv-row">
+          <select id="adv-format" onchange="updatePreview()">
+            <option value="auto">AUTO (pool random)</option>
+            <option value="4dig">4-DIGIT  e.g. 0247</option>
+            <option value="6dig">6-DIGIT  e.g. 039214</option>
+            <option value="date8">DATE YYYYMMDD</option>
+            <option value="datesp">DATE YYYY MM DD</option>
+            <option value="none">NONE</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="adv-section">
+        <label>DATE FILTER</label>
+        <div class="adv-row">
+          <select id="adv-datemode" onchange="updatePreview()">
+            <option value="layer">USE LAYER DEFAULT</option>
+            <option value="before">BEFORE:</option>
+            <option value="after">AFTER:</option>
+            <option value="between">BETWEEN</option>
+            <option value="none">NONE</option>
+          </select>
+          <input type="text" id="adv-date1" placeholder="YYYY-MM-DD" oninput="updatePreview()" style="width:120px;">
+          <span id="adv-date2-wrap" style="display:none;"><input type="text" id="adv-date2" placeholder="end date" oninput="updatePreview()" style="width:120px;"></span>
+        </div>
+      </div>
+      <div class="adv-section">
+        <label>SORT MODE</label>
+        <div class="adv-row">
+          <select id="adv-sort" onchange="updatePreview()">
+            <option value="">DEFAULT (relevance)</option>
+            <option value="&sp=CAI%3D">UPLOAD DATE (newest)</option>
+            <option value="&sp=CAM%3D">VIEW COUNT</option>
+            <option value="&sp=CAE%3D">RATING</option>
+          </select>
+        </div>
+      </div>
+      <div class="adv-section">
+        <label>OPTIONS</label>
+        <div class="adv-row">
+          <button class="toggle-chip" id="chip-dupe" onclick="toggleChip('chip-dupe')">ALLOW DUPLICATES</button>
+          <button class="toggle-chip" id="chip-openall" onclick="toggleChip('chip-openall')">OPEN ×3</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <label style="font-size:10px;color:#c89eff;letter-spacing:1px;">LIVE QUERY PREVIEW</label>
+    <div id="queryPreview"><span class="label">—</span></div>
+  </div>
+  <div class="adv-actions">
+    <button class="primary" onclick="advScan()">▶ FIRE ADVANCED SCAN</button>
+    <button onclick="resetAdv()">RESET</button>
+    <button onclick="copyPreview()">COPY QUERY</button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="left">
+    <div class="panel-label">// ARCHIVE LAYERS</div>
+    <div class="panel">
+      <button id="btn-new"     onclick="setLayer('new')">LAYER I — RECENT FALLEN</button>
+      <button id="btn-mid"     onclick="setLayer('mid')">LAYER II — FORGOTTEN ERA</button>
+      <button id="btn-ancient" onclick="setLayer('ancient')">LAYER III — PRE-ARCHIVE</button>
+      <button id="btn-pseudo"  onclick="setLayer('pseudo')">PSEUDO RANDOM NODE</button>
+      <button onclick="blackout()" id="blackBtn" style="display:none;border-color:#ff00ff;color:#ff00ff;">BLACKOUT LAYER</button>
     </div>
 
-    <div class="adv-actions">
-      <button class="primary" onclick="advScan()">▶ FIRE ADVANCED SCAN</button>
-      <button onclick="resetAdv()">RESET</button>
-      <button onclick="copyPreview()">COPY QUERY</button>
+    <div class="panel-label" style="margin-top:12px;">// CONTROLS</div>
+    <div class="panel">
+      <button onclick="scan()" id="scanBtn" disabled>&#9654; SCAN NODE</button>
+      <button onclick="corrupt()">&#9888; FORCE CORRUPTION</button>
+      <button onclick="toggleIntitle()" id="intitleBtn" class="active">INTITLE: ON</button>
+    </div>
+
+    <div id="output"><span class="out-label">// STREAM OUTPUT</span><span id="outputText">STANDBY — SELECT A LAYER TO BEGIN</span></div>
+
+    <div class="panel-label" style="margin-top:12px;">// SYSTEM LOG</div>
+    <div id="log"></div>
+  </div>
+
+  <div id="right">
+    <div id="nodeViz">
+      <div class="viz-label">// NODE MATRIX</div>
+      <div id="nodeGrid"></div>
+    </div>
+
+    <div id="statsBox">
+      <div class="viz-label" style="font-size:9px;letter-spacing:2px;color:#3a1060;margin-bottom:6px;">// SESSION STATS</div>
+      <div class="stat-row"><span class="stat-key">TOTAL SCANS</span><span class="stat-val" id="st-scans">0</span></div>
+      <div class="stat-row"><span class="stat-key">ACTIVE LAYER</span><span class="stat-val" id="st-layer">—</span></div>
+      <div class="stat-row"><span class="stat-key">LAST TOKEN</span><span class="stat-val" id="st-token" style="font-size:10px;">—</span></div>
+      <div class="stat-row"><span class="stat-key">SESSION TIME</span><span class="stat-val" id="st-time">00:00</span></div>
+    </div>
+
+    <div id="waveBox">
+      <div class="wave-label">// SIGNAL ACTIVITY</div>
+      <canvas id="waveCanvas"></canvas>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;">
+        <div>
+          <div style="font-size:9px;color:#3a1060;letter-spacing:1px;">LAYER I</div>
+          <div class="tier-bar" style="width:80px;"><div class="tier-fill" id="bar-new" style="width:0%"></div></div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:#3a1060;letter-spacing:1px;">LAYER II</div>
+          <div class="tier-bar" style="width:80px;"><div class="tier-fill" id="bar-mid" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;">
+        <div>
+          <div style="font-size:9px;color:#3a1060;letter-spacing:1px;">LAYER III</div>
+          <div class="tier-bar" style="width:80px;"><div class="tier-fill" id="bar-ancient" style="width:0%"></div></div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:#3a1060;letter-spacing:1px;">PSEUDO</div>
+          <div class="tier-bar" style="width:80px;"><div class="tier-fill" id="bar-pseudo" style="width:0%"></div></div>
+        </div>
+      </div>
     </div>
   </div>
-  <!-- / ADVANCED PANEL -->
-
-  <div class="panel">
-    <button id="btn-new"     onclick="setLayer('new')">LAYER I — RECENT FALLEN</button>
-    <button id="btn-mid"     onclick="setLayer('mid')">LAYER II — FORGOTTEN ERA</button>
-    <button id="btn-ancient" onclick="setLayer('ancient')">LAYER III — PRE-ARCHIVE</button>
-    <button id="btn-pseudo"  onclick="setLayer('pseudo')">PSUEDO RANDOM NODE</button>
-    <button onclick="blackout()" id="blackBtn" style="display:none;">BLACKOUT LAYER</button>
-  </div>
-
-  <div class="panel">
-    <button onclick="scan()" id="scanBtn" disabled>SCAN NODE</button>
-    <button onclick="corrupt()">FORCE CORRUPTION</button>
-    <button onclick="toggleIntitle()" id="intitleBtn">INTITLE: OFF</button>
-  </div>
-
-  <div id="output" class="panel">STANDBY</div>
-  <div id="log"></div>
+</div>
 </div>
 
 <script>
-const boot = [
-  "Initializing ZenYard...",
-  "Loading temporal archive layers...",
-  "Reconstructing YouTube metadata fragments...",
-  "Scanning 20,000,000,000+ video nodes...",
-  "System online.",
-  "",
-  "Credits:",
-  "Core inspiration framework: KVN AUST",
-  "Programmed & Created by @zenith.iso"
+const bootLines=[
+  "Initializing ZenYard...","Loading temporal archive layers...",
+  "Reconstructing YouTube metadata fragments...","Scanning 20,000,000,000+ video nodes...",
+  "System online.","",
+  "Credits:","Core inspiration framework: KVN AUST","Programmed & Created by @zenith.iso"
 ];
-
-let i = 0;
-const bootBox = document.getElementById("boot");
-
+let bi=0;
+const bootBox=document.getElementById("boot");
 function bootSeq(){
-  if(i < boot.length){
-    bootBox.innerText += boot[i] + "\n";
-    i++;
-    setTimeout(bootSeq, 500);
+  if(bi<bootLines.length){
+    bootBox.innerText+=bootLines[bi]+"\n";bi++;
+    setTimeout(bootSeq,400);
   } else {
-    document.getElementById("ui").style.display = "block";
-    populatePrefixSelect();
-    updatePreview();
+    document.getElementById("ui").style.display="block";
+    populatePrefixSelect();updatePreview();
+    initNodeGrid();startClock();startWave();
   }
 }
 bootSeq();
 
-let layer = null;
-let scans = 0;
-
-const layerBefore = {
-  new: "2023",
-  mid: "2016",
-  ancient: "2010"
-};
-
-const layerBtns = ["btn-new","btn-mid","btn-ancient","btn-pseudo"];
-
-const pool = [
-  "IMG XXXX","DSC XXXX","MOV XXXX",
-  "GOPRXXXX","CIMGXXXX","MVI XXXX","DSCF XXXX",
-];
+let layer=null,scans=0,intitleOn=true;
+const layerScans={new:0,mid:0,ancient:0,pseudo:0};
+const layerBefore={new:"2023",mid:"2016",ancient:"2010"};
+const layerBtns=["btn-new","btn-mid","btn-ancient","btn-pseudo"];
+const pool=["IMG XXXX","DSC XXXX","MOV XXXX","GOPRXXXX","CIMGXXXX","MVI XXXX","DSCF XXXX"];
 
 function setLayer(l){
-  layer = l;
-  layerBtns.forEach(id => document.getElementById(id).classList.remove("active"));
-  document.getElementById("btn-" + l).classList.add("active");
-
-  const label = {
-    new: "LAYER I — RECENT FALLEN",
-    mid: "LAYER II — FORGOTTEN ERA",
-    ancient: "LAYER III — PRE-ARCHIVE",
-    pseudo: "PSEUDO RANDOM NODE"
-  }[l];
-
-  log("Layer switched → " + label);
-  document.getElementById("output").innerText = "ACTIVE NODE: " + label;
-  document.getElementById("scanBtn").disabled = false;
-  updatePreview();
+  layer=l;
+  layerBtns.forEach(id=>document.getElementById(id).classList.remove("active"));
+  document.getElementById("btn-"+l).classList.add("active");
+  const label={new:"I",mid:"II",ancient:"III",pseudo:"PSEUDO"}[l];
+  document.getElementById("sb-layer").textContent=label;
+  document.getElementById("st-layer").textContent=l.toUpperCase();
+  const fullLabel={new:"LAYER I — RECENT FALLEN",mid:"LAYER II — FORGOTTEN ERA",ancient:"LAYER III — PRE-ARCHIVE",pseudo:"PSEUDO RANDOM NODE"}[l];
+  log("Layer switched → "+fullLabel);
+  document.getElementById("outputText").innerText="ACTIVE NODE: "+fullLabel;
+  document.getElementById("scanBtn").disabled=false;
+  updatePreview();pulseNodes(3);
 }
 
-function r(n){ return Math.floor(Math.random()*n); }
-function pad(n,l){ return n.toString().padStart(l,"0"); }
+function r(n){return Math.floor(Math.random()*n);}
+function pad(n,l){return n.toString().padStart(l,"0");}
 
 function gen(){
-  let q = pool[r(pool.length)];
-
-  q = q.replace(/X{6}/g, pad(r(999999),6));
-  q = q.replace(/XXXX/g, pad(r(9999),4));
-
-  q = q.replace(/YYYYMMDD/g, ()=>{
-    const y = 2006 + r(21);
-    return y + pad(1+r(12),2) + pad(1+r(28),2);
-  });
-
-  q = q.replace(/YYYY/g, 2006 + r(21));
-  q = q.replace(/MM/g, pad(1+r(12),2));
-  q = q.replace(/DD/g, pad(1+r(28),2));
-
+  let q=pool[r(pool.length)];
+  q=q.replace(/X{6}/g,pad(r(999999),6));
+  q=q.replace(/XXXX/g,pad(r(9999),4));
   return q;
 }
 
-let intitleOn = false;
-
 function toggleIntitle(){
-  intitleOn = !intitleOn;
-  const btn = document.getElementById("intitleBtn");
-  btn.innerText = intitleOn ? "INTITLE: ON" : "INTITLE: OFF";
-  btn.classList.toggle("active", intitleOn);
+  intitleOn=!intitleOn;
+  const btn=document.getElementById("intitleBtn");
+  btn.innerText=intitleOn?"INTITLE: ON":"INTITLE: OFF";
+  btn.classList.toggle("active",intitleOn);
   updatePreview();
-  log("INTITLE: operator " + (intitleOn ? "ENABLED" : "DISABLED"));
+  log("INTITLE: operator "+(intitleOn?"ENABLED":"DISABLED"));
 }
 
-function exactQuote(q){
-  const match = q.match(/^(.*?)(\s+(before:|after:)\S+(\s+(before:|after:)\S+)?)?$/i);
-  if(match){
-    const core = match[1].trim();
-    const operators = (match[2] || "").trim();
-    const wrapped = intitleOn ? 'intitle:"' + core + '"' : '"' + core + '"';
-    return wrapped + (operators ? " " + operators : "");
-  }
-  return intitleOn ? 'intitle:"' + q + '"' : '"' + q + '"';
+function wrapQuery(core,dateOp){
+  const wrapped=intitleOn?'intitle:"'+core+'"':'"'+core+'"';
+  return wrapped+(dateOp?" "+dateOp:"");
 }
 
 function scan(){
-  if(!layer){
-    log('<span class="err">ERR // NO LAYER SELECTED — SELECT A NODE BEFORE SCANNING</span>');
-    document.getElementById("output").innerText = "ERROR: NO LAYER SELECTED";
-    return;
-  }
-
-  const isPseudo = layer === "pseudo";
-  const q = gen();
-  const dateOp = isPseudo ? "" : " before:" + layerBefore[layer];
-  const fullQ = exactQuote(q) + dateOp;
-
-  scans++;
-
-  log("NODE → " + fullQ + (isPseudo ? " [no time sort]" : ""));
-
-  window.open(
-    "https://www.youtube.com/results?search_query=" + encodeURIComponent(fullQ),
-    "_blank"
-  );
-
-  document.getElementById("output").innerText = isPseudo
-    ? "PSEUDO NODE STREAM ACTIVE (" + scans + ") // UNSORTED"
-    : "NODE STREAM ACTIVE (" + scans + ") // BEFORE:" + layerBefore[layer];
-
-  if(scans > 8){
-    document.getElementById("blackBtn").style.display = "inline-block";
-  }
+  if(!layer){log('<span class="err">ERR // NO LAYER SELECTED</span>');return;}
+  const isPseudo=layer==="pseudo";
+  const q=gen();
+  const dateOp=isPseudo?"":"before:"+layerBefore[layer];
+  const fullQ=wrapQuery(q,dateOp);
+  scans++;layerScans[layer]++;
+  updateStats(q);
+  log("NODE → "+fullQ+(isPseudo?" [no time sort]":""));
+  window.open("https://www.youtube.com/results?search_query="+encodeURIComponent(fullQ),"_blank");
+  document.getElementById("outputText").innerText=isPseudo
+    ?"PSEUDO NODE STREAM ACTIVE ("+scans+") // UNSORTED"
+    :"NODE STREAM ACTIVE ("+scans+") // BEFORE:"+layerBefore[layer];
+  if(scans>8)document.getElementById("blackBtn").style.display="inline-block";
+  pulseNodes(5);updateBars();
 }
 
 function corrupt(){
-  document.body.style.background = "#120018";
-  document.getElementById("output").innerText = "⚠ CORRUPTION EVENT ⚠";
-  setTimeout(()=>{ document.body.style.background = "black"; }, 1200);
-  log("SYSTEM CORRUPTION TRIGGERED");
+  document.body.style.background="#120018";
+  document.getElementById("outputText").innerText="⚠ CORRUPTION EVENT ⚠";
+  document.getElementById("sb-status").textContent="CORRUPT";
+  document.getElementById("sb-status").style.color="#ff4444";
+  setTimeout(()=>{
+    document.body.style.background="black";
+    document.getElementById("sb-status").textContent="ONLINE";
+    document.getElementById("sb-status").style.color="#44ff88";
+  },1200);
+  log("SYSTEM CORRUPTION TRIGGERED");pulseNodes(8,true);
 }
 
 function blackout(){
-  document.body.style.background = "#000000";
-  document.body.style.color = "#ff00ff";
-  document.getElementById("output").innerText =
-    "BLACKOUT LAYER ACTIVE // UNSORTED ARCHIVE ACCESS";
+  document.body.style.background="#000000";
+  document.body.style.color="#ff00ff";
+  document.getElementById("outputText").innerText="BLACKOUT LAYER ACTIVE // UNSORTED ARCHIVE ACCESS";
   log("BLACKOUT LAYER ACCESSED");
 }
 
 function log(msg){
-  const box = document.getElementById("log");
-  const t = new Date().toTimeString().split(" ")[0];
-  box.innerHTML += `[${t}] ${msg}<br>`;
-  box.scrollTop = box.scrollHeight;
+  const box=document.getElementById("log");
+  const t=new Date().toTimeString().split(" ")[0];
+  box.innerHTML+=`[${t}] ${msg}<br>`;
+  box.scrollTop=box.scrollHeight;
 }
 
-// =====================
-// ADVANCED TAB
-// =====================
+function updateStats(lastToken){
+  document.getElementById("sb-scans").textContent=scans;
+  document.getElementById("st-scans").textContent=scans;
+  if(lastToken)document.getElementById("st-token").textContent=lastToken.substring(0,10);
+}
 
-let advOpen = false;
+let sessionStart=Date.now();
+function startClock(){
+  setInterval(()=>{
+    const s=Math.floor((Date.now()-sessionStart)/1000);
+    const m=Math.floor(s/60),ss=s%60;
+    document.getElementById("st-time").textContent=pad(m,2)+":"+pad(ss,2);
+  },1000);
+}
 
+function initNodeGrid(){
+  const grid=document.getElementById("nodeGrid");
+  for(let i=0;i<64;i++){
+    const d=document.createElement("div");
+    d.className="nd";d.dataset.i=i;
+    grid.appendChild(d);
+  }
+}
+
+function pulseNodes(count,corrupt){
+  const nodes=document.querySelectorAll(".nd");
+  for(let i=0;i<count;i++){
+    setTimeout(()=>{
+      const n=nodes[r(64)];
+      n.classList.add(corrupt?"fired":"lit");
+      setTimeout(()=>n.classList.remove(corrupt?"fired":"lit"),300+r(400));
+    },i*60);
+  }
+}
+
+setInterval(()=>{if(layer)pulseNodes(1);},800);
+
+function updateBars(){
+  const total=Math.max(1,scans);
+  ["new","mid","ancient","pseudo"].forEach(l=>{
+    const pct=Math.min(100,Math.round((layerScans[l]/total)*100));
+    document.getElementById("bar-"+l).style.width=pct+"%";
+  });
+}
+
+let waveData=new Array(60).fill(0);
+function startWave(){
+  const canvas=document.getElementById("waveCanvas");
+  const ctx=canvas.getContext("2d");
+  canvas.width=canvas.offsetWidth||180;canvas.height=40;
+  setInterval(()=>{
+    waveData.push(scans>0?(0.3+Math.random()*0.7):Math.random()*0.15);
+    if(waveData.length>60)waveData.shift();
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle="#b26cff";ctx.lineWidth=1;
+    ctx.beginPath();
+    waveData.forEach((v,i)=>{
+      const x=(i/59)*canvas.width;
+      const y=canvas.height-(v*canvas.height*0.85);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    ctx.strokeStyle="#2a0050";ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(0,canvas.height/2);ctx.lineTo(canvas.width,canvas.height/2);ctx.stroke();
+  },200);
+}
+
+let advOpen=false;
 function toggleAdvanced(){
-  advOpen = !advOpen;
-  document.getElementById("advancedPanel").classList.toggle("visible", advOpen);
-  document.getElementById("advancedTab").classList.toggle("open", advOpen);
-  document.getElementById("advancedTab").innerText = advOpen ? "[ ADVANCED ▴ ]" : "[ ADVANCED ▾ ]";
-  if(advOpen) updatePreview();
+  advOpen=!advOpen;
+  document.getElementById("advancedPanel").classList.toggle("visible",advOpen);
+  document.getElementById("advancedTab").classList.toggle("open",advOpen);
+  document.getElementById("advancedTab").innerText=advOpen?"[ ADVANCED ▴ ]":"[ ADVANCED ▾ ]";
+  if(advOpen)updatePreview();
 }
 
-function toggleChip(id){
-  document.getElementById(id).classList.toggle("on");
-  updatePreview();
-}
+function toggleChip(id){document.getElementById(id).classList.toggle("on");updatePreview();}
+function chipOn(id){return document.getElementById(id).classList.contains("on");}
 
-function chipOn(id){ return document.getElementById(id).classList.contains("on"); }
-
-document.getElementById("adv-datemode").addEventListener("change", function(){
-  const show = this.value === "between";
-  document.getElementById("adv-date2-wrap").style.display = show ? "inline" : "none";
+document.getElementById("adv-datemode").addEventListener("change",function(){
+  document.getElementById("adv-date2-wrap").style.display=this.value==="between"?"inline":"none";
   updatePreview();
 });
 
 function populatePrefixSelect(){
-  const sel = document.getElementById("adv-prefix");
-  const seen = new Set();
-
-  pool.forEach(entry => {
-    const prefix = entry.replace(/\s*(X{6}|XXXX|YYYYMMDD|YYYY\s*MM\s*DD|YYYY|MM|DD).*/i, "").trim();
-    if(prefix && !seen.has(prefix)){
-      seen.add(prefix);
-      const opt = document.createElement("option");
-      opt.value = prefix;
-      opt.text = prefix;
-      sel.appendChild(opt);
+  const sel=document.getElementById("adv-prefix");const seen=new Set();
+  pool.forEach(entry=>{
+    const prefix=entry.replace(/\s*(X{6}|XXXX).*/i,"").trim();
+    if(prefix&&!seen.has(prefix)){
+      seen.add(prefix);const opt=document.createElement("option");
+      opt.value=prefix;opt.text=prefix;sel.appendChild(opt);
     }
   });
 }
 
 function buildAdvToken(){
-  const fmt = document.getElementById("adv-format").value;
-
-  if(fmt === "none") return "";
-  if(fmt === "4dig") return pad(r(9999),4);
-  if(fmt === "6dig") return pad(r(999999),6);
-
-  if(fmt === "date8"){
-    const y = 2006 + r(21);
-    return "" + y + pad(1+r(12),2) + pad(1+r(28),2);
-  }
-
-  if(fmt === "datesp"){
-    const y = 2006 + r(21);
-    return y + " " + pad(1+r(12),2) + " " + pad(1+r(28),2);
-  }
-
+  const fmt=document.getElementById("adv-format").value;
+  if(fmt==="none")return"";
+  if(fmt==="4dig")return pad(r(9999),4);
+  if(fmt==="6dig")return pad(r(999999),6);
+  if(fmt==="date8"){const y=2006+r(21);return""+y+pad(1+r(12),2)+pad(1+r(28),2);}
+  if(fmt==="datesp"){const y=2006+r(21);return y+" "+pad(1+r(12),2)+" "+pad(1+r(28),2);}
   return gen();
 }
 
-// ── CHANGED: buildAdvQuery also uses intitle:"..." for the core term ──
 function buildAdvQuery(forPreview){
-  const prefix = document.getElementById("adv-prefix").value.trim();
-  const suffix = document.getElementById("adv-suffix").value.trim();
-  const fmt = document.getElementById("adv-format").value;
-  const datemode = document.getElementById("adv-datemode").value;
-  const date1 = document.getElementById("adv-date1").value.trim();
-  const date2 = document.getElementById("adv-date2").value.trim();
-
-  let token = forPreview ? "[TOKEN]" : buildAdvToken();
-
-  let parts = [];
-  if(prefix) parts.push(prefix);
-  if(fmt !== "none") parts.push(token);
-  if(suffix) parts.push(suffix);
-
-  const core = parts.join(" ");
-
-  let dateOp = "";
-  if(datemode === "before" && date1){
-    dateOp = " before:" + date1;
-  } else if(datemode === "after" && date1){
-    dateOp = " after:" + date1;
-  } else if(datemode === "between" && date1 && date2){
-    dateOp = " after:" + date1 + " before:" + date2;
-  } else if(datemode === "layer" && layer && layer !== "pseudo"){
-    dateOp = " before:" + layerBefore[layer];
-  }
-
-  // intitle: wraps only the core term, date operators stay outside
-  return (core ? 'intitle:"' + core + '"' : "") + dateOp;
+  const prefix=document.getElementById("adv-prefix").value.trim();
+  const suffix=document.getElementById("adv-suffix").value.trim();
+  const fmt=document.getElementById("adv-format").value;
+  const datemode=document.getElementById("adv-datemode").value;
+  const date1=document.getElementById("adv-date1").value.trim();
+  const date2=document.getElementById("adv-date2").value.trim();
+  let token=forPreview?"[TOKEN]":buildAdvToken();
+  let parts=[];
+  if(prefix)parts.push(prefix);
+  if(fmt!=="none")parts.push(token);
+  if(suffix)parts.push(suffix);
+  const core=parts.join(" ");
+  let dateOp="";
+  if(datemode==="before"&&date1)dateOp="before:"+date1;
+  else if(datemode==="after"&&date1)dateOp="after:"+date1;
+  else if(datemode==="between"&&date1&&date2)dateOp="after:"+date1+" before:"+date2;
+  else if(datemode==="layer"&&layer&&layer!=="pseudo")dateOp="before:"+layerBefore[layer];
+  if(!core)return dateOp?dateOp:"";
+  return wrapQuery(core,dateOp);
 }
 
 function updatePreview(){
-  const q = buildAdvQuery(true);
-  const sort = document.getElementById("adv-sort").value;
-
-  let sortLabel = "";
-  if(sort){
-    sortLabel = " [+" + document.getElementById("adv-sort").selectedOptions[0].text.split("(")[0].trim() + "]";
-  }
-
-  document.getElementById("queryPreview").innerHTML =
-    '<span class="label">QUERY: </span>' + (q || "<em>—</em>") + sortLabel;
+  const q=buildAdvQuery(true);
+  const sort=document.getElementById("adv-sort");
+  let sortLabel="";
+  if(sort.value)sortLabel=" [+"+sort.selectedOptions[0].text.split("(")[0].trim()+"]";
+  document.getElementById("queryPreview").innerHTML='<span class="label">QUERY: </span>'+(q||"<em>—</em>")+sortLabel;
 }
 
 function advScan(){
-  const q = buildAdvQuery(false);
-
-  if(!q || q.trim() === "" || q.trim() === 'intitle:""'){
-    log('<span class="err">ADV ERR // EMPTY QUERY — CONFIGURE SPECIFICATIONS</span>');
-    return;
+  const q=buildAdvQuery(false);
+  if(!q||q.trim()===""||q.trim()==='intitle:""'){
+    log('<span class="err">ADV ERR // EMPTY QUERY</span>');return;
   }
-
-  const sort = document.getElementById("adv-sort").value;
-  const openAll = chipOn("chip-openall");
-  const count = openAll ? 3 : 1;
-
-  scans += count;
-  log("ADV NODE → " + q + (openAll ? " [×" + count + "]" : ""));
-
-  for(let n = 0; n < count; n++){
-    window.open(
-      "https://www.youtube.com/results?search_query=" + encodeURIComponent(q) + sort,
-      "_blank"
-    );
+  const sort=document.getElementById("adv-sort").value;
+  const openAll=chipOn("chip-openall");
+  const count=openAll?3:1;
+  scans+=count;
+  updateStats(null);
+  log("ADV NODE → "+q+(openAll?" [×"+count+"]":""));
+  for(let n=0;n<count;n++){
+    window.open("https://www.youtube.com/results?search_query="+encodeURIComponent(q)+sort,"_blank");
   }
-
-  document.getElementById("output").innerText =
-    "ADV SCAN FIRED (" + scans + ") // " + q;
-
-  if(scans > 8){
-    document.getElementById("blackBtn").style.display = "inline-block";
-  }
+  document.getElementById("outputText").innerText="ADV SCAN FIRED ("+scans+") // "+q;
+  if(scans>8)document.getElementById("blackBtn").style.display="inline-block";
+  pulseNodes(5);updateBars();
 }
 
 function resetAdv(){
-  document.getElementById("adv-prefix").selectedIndex = 0;
-  document.getElementById("adv-suffix").value = "";
-  document.getElementById("adv-format").value = "auto";
-  document.getElementById("adv-datemode").value = "layer";
-  document.getElementById("adv-date1").value = "";
-  document.getElementById("adv-date2").value = "";
-  document.getElementById("adv-sort").value = "";
-  document.getElementById("adv-date2-wrap").style.display = "none";
-
-  ["chip-mutate"].forEach(id => document.getElementById(id).classList.remove("on"));
-  ["chip-dupe","chip-openall"].forEach(id => document.getElementById(id).classList.remove("on"));
-
-  updatePreview();
-  log("ADV // CONFIG RESET");
+  document.getElementById("adv-prefix").selectedIndex=0;
+  document.getElementById("adv-suffix").value="";
+  document.getElementById("adv-format").value="auto";
+  document.getElementById("adv-datemode").value="layer";
+  document.getElementById("adv-date1").value="";
+  document.getElementById("adv-date2").value="";
+  document.getElementById("adv-sort").value="";
+  document.getElementById("adv-date2-wrap").style.display="none";
+  ["chip-dupe","chip-openall"].forEach(id=>document.getElementById(id).classList.remove("on"));
+  updatePreview();log("ADV // CONFIG RESET");
 }
 
 function copyPreview(){
-  const q = buildAdvQuery(false);
-
+  const q=buildAdvQuery(false);
   navigator.clipboard.writeText(q).then(()=>{
-    log("ADV // QUERY COPIED → " + q);
-  }).catch(()=>{
-    log("ADV // COPY FAILED (clipboard unavailable)");
-  });
+    log("ADV // QUERY COPIED → "+q);
+  }).catch(()=>{log("ADV // COPY FAILED");});
 }
 </script>
-</body>
-</html>
