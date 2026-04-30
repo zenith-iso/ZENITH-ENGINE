@@ -370,6 +370,18 @@ function gen(){
   return q;
 }
 
+function exactQuote(q){
+  // Wrap the core filename token in quotes; date operators must stay outside
+  // Strategy: split off any trailing before:/after: operators, quote the rest
+  const match = q.match(/^(.*?)(\s+(before:|after:)\S+(\s+(before:|after:)\S+)?)?$/i);
+  if(match){
+    const core = match[1].trim();
+    const operators = (match[2] || "").trim();
+    return '"' + core + '"' + (operators ? " " + operators : "");
+  }
+  return '"' + q + '"';
+}
+
 function scan(){
   if(!layer){
     log('<span class="err">ERR // NO LAYER SELECTED — SELECT A NODE BEFORE SCANNING</span>');
@@ -378,7 +390,8 @@ function scan(){
   }
   const isPseudo = layer === "pseudo";
   const q = gen();
-  const fullQ = isPseudo ? q : q + " before:" + layerBefore[layer];
+  const dateOp = isPseudo ? "" : " before:" + layerBefore[layer];
+  const fullQ = exactQuote(q) + dateOp;
   scans++;
   log("NODE → " + fullQ + (isPseudo ? " [no time sort]" : ""));
   window.open(
@@ -445,10 +458,8 @@ document.getElementById("adv-datemode").addEventListener("change", function(){
 
 function populatePrefixSelect(){
   const sel = document.getElementById("adv-prefix");
-  // Extract the static prefix part of each pool entry (everything before first placeholder char)
   const seen = new Set();
   pool.forEach(entry => {
-    // Strip placeholder sequences: XXXX, YYYYMMDD, YYYY, MM, DD, X{6}
     const prefix = entry.replace(/\s*(X{6}|XXXX|YYYYMMDD|YYYY\s*MM\s*DD|YYYY|MM|DD).*/i, "").trim();
     if(prefix && !seen.has(prefix)){
       seen.add(prefix);
@@ -493,19 +504,23 @@ function buildAdvQuery(forPreview){
   if(fmt !== "none") parts.push(token);
   if(suffix) parts.push(suffix);
 
-  let q = parts.join(" ");
+  // The core (quoted) part — everything before date operators
+  const core = parts.join(" ");
 
-  // Date filter
+  // Date operators — must live outside the quotes
+  let dateOp = "";
   if(datemode === "before" && date1){
-    q += " before:" + date1;
+    dateOp = " before:" + date1;
   } else if(datemode === "after" && date1){
-    q += " after:" + date1;
+    dateOp = " after:" + date1;
   } else if(datemode === "between" && date1 && date2){
-    q += " after:" + date1 + " before:" + date2;
+    dateOp = " after:" + date1 + " before:" + date2;
   } else if(datemode === "layer" && layer && layer !== "pseudo"){
-    q += " before:" + layerBefore[layer];
+    dateOp = " before:" + layerBefore[layer];
   }
 
+  // Wrap core in quotes, append date operators outside
+  const q = (core ? '"' + core + '"' : "") + dateOp;
   return q;
 }
 
@@ -520,7 +535,7 @@ function updatePreview(){
 
 function advScan(){
   const q = buildAdvQuery(false);
-  if(!q || q.trim() === ""){
+  if(!q || q.trim() === "" || q.trim() === '""'){
     log('<span class="err">ADV ERR // EMPTY QUERY — CONFIGURE SPECIFICATIONS</span>');
     return;
   }
