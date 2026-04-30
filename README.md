@@ -1,8 +1,8 @@
 # ZENITH-ENGINE — YouTube Archive Node Scanner
-
+> *"Scanning 20,000,000,000+ video nodes..."*
+> 
 <img width="1912" height="607" alt="image" src="https://github.com/user-attachments/assets/2c6d6714-2ac5-448e-aea6-15549401f01f" />
 
-> *"Scanning 20,000,000,000+ video nodes..."*
 
 A browser-based tool for surfacing forgotten, unlisted, and unindexed YouTube videos by generating raw camera filename queries — the kind of titles people never change before uploading.
 
