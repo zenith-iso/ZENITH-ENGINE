@@ -14,7 +14,6 @@ body {
 #boot { padding: 20px; white-space: pre-line; }
 #ui { display: none; padding: 20px; }
 
-/* Top bar with title + advanced tab */
 #topbar {
   display: flex;
   justify-content: space-between;
@@ -37,7 +36,6 @@ h1 { color: #b26cff; letter-spacing: 2px; margin: 0; }
 }
 #advancedTab:hover, #advancedTab.open { background: #b26cff; color: black; }
 
-/* Advanced panel */
 #advancedPanel {
   display: none;
   border: 1px solid #b26cff;
@@ -143,7 +141,6 @@ h1 { color: #b26cff; letter-spacing: 2px; margin: 0; }
 .adv-actions button.primary { border-color: #ff88ff; color: #ff88ff; }
 .adv-actions button.primary:hover { background: #ff88ff; color: black; }
 
-/* === Original styles below === */
 .panel { border: 1px solid #b26cff; padding: 10px; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
 button {
   background: black; color: #b26cff;
@@ -272,6 +269,7 @@ button:disabled:hover { background: black; color: #b26cff; }
   <div class="panel">
     <button onclick="scan()" id="scanBtn" disabled>SCAN NODE</button>
     <button onclick="corrupt()">FORCE CORRUPTION</button>
+    <button onclick="toggleIntitle()" id="intitleBtn">INTITLE: OFF</button>
   </div>
 
   <div id="output" class="panel">STANDBY</div>
@@ -347,7 +345,6 @@ function pad(n,l){ return n.toString().padStart(l,"0"); }
 function gen(){
   let q = pool[r(pool.length)];
 
-  // Replace placeholders safely
   q = q.replace(/X{6}/g, pad(r(999999),6));
   q = q.replace(/XXXX/g, pad(r(9999),4));
 
@@ -363,14 +360,26 @@ function gen(){
   return q;
 }
 
+let intitleOn = false;
+
+function toggleIntitle(){
+  intitleOn = !intitleOn;
+  const btn = document.getElementById("intitleBtn");
+  btn.innerText = intitleOn ? "INTITLE: ON" : "INTITLE: OFF";
+  btn.classList.toggle("active", intitleOn);
+  updatePreview();
+  log("INTITLE: operator " + (intitleOn ? "ENABLED" : "DISABLED"));
+}
+
 function exactQuote(q){
   const match = q.match(/^(.*?)(\s+(before:|after:)\S+(\s+(before:|after:)\S+)?)?$/i);
   if(match){
     const core = match[1].trim();
     const operators = (match[2] || "").trim();
-    return '"' + core + '"' + (operators ? " " + operators : "");
+    const wrapped = intitleOn ? 'intitle:"' + core + '"' : '"' + core + '"';
+    return wrapped + (operators ? " " + operators : "");
   }
-  return '"' + q + '"';
+  return intitleOn ? 'intitle:"' + q + '"' : '"' + q + '"';
 }
 
 function scan(){
@@ -488,6 +497,7 @@ function buildAdvToken(){
   return gen();
 }
 
+// ── CHANGED: buildAdvQuery also uses intitle:"..." for the core term ──
 function buildAdvQuery(forPreview){
   const prefix = document.getElementById("adv-prefix").value.trim();
   const suffix = document.getElementById("adv-suffix").value.trim();
@@ -516,7 +526,8 @@ function buildAdvQuery(forPreview){
     dateOp = " before:" + layerBefore[layer];
   }
 
-  return (core ? '"' + core + '"' : "") + dateOp;
+  // intitle: wraps only the core term, date operators stay outside
+  return (core ? 'intitle:"' + core + '"' : "") + dateOp;
 }
 
 function updatePreview(){
@@ -535,7 +546,7 @@ function updatePreview(){
 function advScan(){
   const q = buildAdvQuery(false);
 
-  if(!q || q.trim() === "" || q.trim() === '""'){
+  if(!q || q.trim() === "" || q.trim() === 'intitle:""'){
     log('<span class="err">ADV ERR // EMPTY QUERY — CONFIGURE SPECIFICATIONS</span>');
     return;
   }
