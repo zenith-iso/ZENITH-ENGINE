@@ -90,3 +90,4 @@ Core concept inspired by **KVN AUST** and the broader practice of "lost media" Y
 ## License
 
 Do whatever you want with it. No tracking, no backend, no dependencies — just a single HTML file.
+Have fun, Explorers! :)
