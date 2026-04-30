@@ -2,8 +2,8 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ZENITH ENGINE v2.0</title>
 <style>
+* { box-sizing: border-box; }
 body {
   margin: 0;
   background: black;
@@ -13,23 +13,20 @@ body {
 }
 #boot { padding: 20px; white-space: pre-line; }
 #ui { display: none; padding: 20px; }
-h1 { color: #b26cff; letter-spacing: 2px; }
-.panel { border: 1px solid #b26cff; padding: 10px; margin-top: 10px; }
+h1 { color: #b26cff; letter-spacing: 2px; margin: 0 0 10px; }
+.panel { border: 1px solid #b26cff; padding: 10px; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
 button {
   background: black; color: #b26cff;
   border: 1px solid #b26cff; padding: 10px; cursor: pointer;
 }
 button:hover { background: #b26cff; color: black; }
-button.active {
-  background: #b26cff; color: black;
-}
-button:disabled {
-  opacity: 0.3; cursor: not-allowed;
-}
+button.active { background: #b26cff; color: black; }
+button:disabled { opacity: 0.3; cursor: not-allowed; }
 button:disabled:hover { background: black; color: #b26cff; }
 #log {
   height: 180px; overflow-y: auto;
   border: 1px dashed #b26cff; padding: 10px; margin-top: 10px;
+  font-size: 12px;
 }
 .glitch { animation: flicker 0.15s infinite; }
 @keyframes flicker {
@@ -79,7 +76,6 @@ const boot = [
 
 let i = 0;
 const bootBox = document.getElementById("boot");
-
 function bootSeq(){
   if(i < boot.length){
     bootBox.innerText += boot[i] + "\n";
@@ -102,21 +98,28 @@ const layerBefore = {
 
 const layerBtns = ["btn-new","btn-mid","btn-ancient","btn-pseudo"];
 
+const pool = [
+  "IMG XXXX","DSC XXXX","MOV XXXX","VID YYYYMMDD",
+  "Screen Recording YYYY MM DD","Capture YYYYMMDD",
+  "WhatsApp Video YYYY","Desktop YYYY MM DD",
+  "GOPRXXXX","CIMGXXXX","Untitled video",
+  "Test upload","Copy of Copy","Videoplayback",
+  "MVI XXXX","DSCF XXXX","P XXXXXX","clip XXXX",
+  "movie YYYYMMDD","recording YYYY MM DD",
+  "video XXXX","GH XXXXXX","trim YYYYMMDD",
+  "File XXXX","output XXXX","export YYYYMMDD"
+];
+
 function setLayer(l){
   layer = l;
-
-  layerBtns.forEach(id => {
-    document.getElementById(id).classList.remove("active");
-  });
+  layerBtns.forEach(id => document.getElementById(id).classList.remove("active"));
   document.getElementById("btn-" + l).classList.add("active");
-
   const label = {
     new: "LAYER I — RECENT FALLEN",
     mid: "LAYER II — FORGOTTEN ERA",
     ancient: "LAYER III — PRE-ARCHIVE",
     pseudo: "PSUEDO RANDOM NODE"
   }[l];
-
   log("Layer switched → " + label);
   document.getElementById("output").innerText = "ACTIVE NODE: " + label;
   document.getElementById("scanBtn").disabled = false;
@@ -134,27 +137,12 @@ function mutate(seed){
   }).join("");
 }
 
-function gen(mode){
-  let pool = [
-    "IMG XXXX","DSC XXXX","MOV XXXX","VID YYYYMMDD",
-    "Screen Recording YYYY MM DD","Capture YYYYMMDD",
-    "WhatsApp Video YYYY","Desktop YYYY MM DD",
-    "GOPRXXXX","CIMGXXXX","Untitled video",
-    "Test upload","Copy of Copy","Videoplayback"
-  ];
-
-  let q;
-  if(mode === "pseudo"){
-    q = pool[r(pool.length)];
-  } else {
-    if(layer === "new")    q = pool[r(6)];
-    if(layer === "mid")    q = pool[r(9)];
-    if(layer === "ancient")q = pool[9 + r(pool.length-9)];
-  }
-
+function gen(){
+  let q = pool[r(pool.length)];
   if(lastSeed && Math.random() < 0.4){ q = mutate(q); }
   lastSeed = q;
 
+  q = q.replace(/X{6}/g, pad(r(999999),6));
   q = q.replace(/XXXX/g, pad(r(9999),4));
   q = q.replace(/YYYYMMDD/g, ()=>{
     const y = 2006 + r(21);
@@ -175,12 +163,8 @@ function scan(){
   }
 
   const isPseudo = layer === "pseudo";
-  let q = gen(isPseudo ? "pseudo" : "normal");
-
-  let fullQ = q;
-  if(!isPseudo){
-    fullQ = q + " before:" + layerBefore[layer];
-  }
+  const q = gen();
+  const fullQ = isPseudo ? q : q + " before:" + layerBefore[layer];
 
   scans++;
   log("NODE → " + fullQ + (isPseudo ? " [no time sort]" : ""));
@@ -220,7 +204,6 @@ function log(msg){
   box.innerHTML += `[${t}] ${msg}<br>`;
   box.scrollTop = box.scrollHeight;
 }
-
 </script>
 </body>
 </html>
